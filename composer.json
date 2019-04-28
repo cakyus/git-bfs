@@ -1,0 +1,11 @@
+{
+    "name": "git-bfs/git-bfs",
+    "description": "Git Extension for BIG File Storage",
+    "license": "GPL-2.0-only",
+    "minimum-stability": "dev",
+		"autoload": {
+			"psr-4": {
+				"GitBfs\\": "src/"
+			}
+		}
+}
