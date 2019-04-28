@@ -1,0 +1,3 @@
+
+ln -s ../src/git-bfs/git-bfs ~/bin/git-bfs
+
