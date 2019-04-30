@@ -53,31 +53,25 @@ class Remote {
 		$infoDir = $dir.'/info';
 		$logDir = $dir.'/logs';
 
-		foreach (array($objectDir, $infoDir, $logDir) as $dirPath){
-			if (is_dir($dirPath) == false){
-				mkdir($dirPath);
-			}
-		}
-
 		$config = $this->project->getConfig();
-		foreach ($config->files as $filePath => $fileHash){
+		foreach ($config->files as $filePath => $file){
 
 			if (is_file($filePath) == false){
+				fwrite(STDERR, "WARN filePath is not found : '$filePath'\n");
 				continue;
 			}
 
-			$fileHash = md5_file($filePath);
+			$fileHash = $file['hash'];
 
 			$remoteObjectFile = $objectDir.'/'.$fileHash;
 			$remoteInfoFile = $infoDir.'/'.$fileHash;
 			$remoteLogDir = $logDir.'/'.$fileHash;
-
+			
 			// write object file
 
 			if (is_file($remoteObjectFile) == false) {
-				fwrite(STDERR, "PUSH $filePath\n");
+				fwrite(STDERR, "PUSH object $filePath\n");
 				copy($filePath, $remoteObjectFile);
-				continue;
 			}
 
 			// write info file
@@ -89,8 +83,10 @@ class Remote {
 				}
 				$data[] = $filePath;
 				$text = implode("\n", $data);
+				fwrite(STDERR, "PUSH info $filePath\n");
 				file_put_contents($remoteInfoFile, $text);
 			} else {
+				fwrite(STDERR, "PUSH info $filePath\n");
 				file_put_contents($remoteInfoFile, $filePath);
 			}
 		}

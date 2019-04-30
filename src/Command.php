@@ -40,7 +40,7 @@ class Command {
 		$commandName = 'command'.ucfirst($commandName);
 
 		if (method_exists($this, $commandName) == false){
-			fwrite(STDERR, "ERROR: Command not exists\n");
+			fwrite(STDERR, "ERROR: Command not exists $commandName\n");
 			$this->commandHelp();
 			exit(1);
 		}

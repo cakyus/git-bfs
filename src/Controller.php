@@ -32,7 +32,7 @@ class Controller extends \GitBfs\Command {
 	 * Print current working directory status
 	 **/
 
-	public function commandInfo() {
+	public function commandStatus() {
 
 		$exitCode = 0;
 
@@ -55,54 +55,53 @@ class Controller extends \GitBfs\Command {
 					}
 					$path = $dir.'/'.$file;
 					if (is_dir($path)) {
+						if ($file == '.git'){
+							continue;
+						}
 						$dirs[] = $path;
 					} elseif (is_file($path)) {
 
+						if ($project->validateFile($path) == false){
+							continue;
+						}
+
 						$fileStatus = 'I'; // Invalid
-						$viewFile = $view->viewPath($file);
+						$viewFile = $view->viewPath($path);
+
 						unset($deletedFiles[$viewFile]);
 
-						if ($project->validateFile($path)){
-							if (array_key_exists($viewFile, $config->files)) {
+						if (array_key_exists($viewFile, $config->files)) {
 
-								$fileSize = filesize($path);
-								$fileDate = filemtime($path);
+							$fileSize = filesize($path);
+							$fileDate = filemtime($path);
 
-								$configFileSize = $config->files[$viewFile]['size'];
-								$configFileDate = $config->files[$viewFile]['date'];
-								$configFileHash = $config->files[$viewFile]['hash'];
+							$configFileSize = $config->files[$viewFile]['size'];
+							$configFileDate = $config->files[$viewFile]['date'];
+							$configFileHash = $config->files[$viewFile]['hash'];
 
-								if (	$fileSize == $configFileSize
-									&&	$fileDate == $configFileDate
-									){
-									// No changes
-									$fileStatus = ' ';
-									continue;
-								}
-
-								$fileHash = md5_file($path);
-
-								if ($fileHash == $configFileHash){
-									// No changes
-									$fileStatus = ' ';
-									continue;
-								}
-
-								// Has change
-								$fileStatus = 'M';
-								$exitCode = 1;
-							} else {
-								// Not in database
-								$fileStatus = '?';
-								$exitCode = 1;
-							}
-						} else {
-							if (array_key_exists($viewFile, $config->files)) {
-								$fileStatus = 'E';
-								$exitCode = 1;
-							} else {
+							if (	$fileSize == $configFileSize
+								&&	$fileDate == $configFileDate
+								){
+								// No changes
+								$fileStatus = ' ';
 								continue;
 							}
+
+							$fileHash = md5_file($path);
+
+							if ($fileHash == $configFileHash){
+								// No changes
+								$fileStatus = ' ';
+								continue;
+							}
+
+							// Has change
+							$fileStatus = 'M';
+							$exitCode = 1;
+						} else {
+							// Not in database
+							$fileStatus = '?';
+							$exitCode = 1;
 						}
 
 						echo "$fileStatus $viewFile\n";
@@ -118,30 +117,6 @@ class Controller extends \GitBfs\Command {
 		}
 
 		return $exitCode;
-	}
-
-	/**
-	 * Append files into stash
-	 **/
-
-	public function commandAdd(){
-
-	}
-
-	/**
-	 * Clear stash
-	 **/
-
-	public function commandReset(){
-
-	}
-
-	/**
-	 * Remove files from database
-	 **/
-
-	public function commandDel(){
-
 	}
 
 	/**
