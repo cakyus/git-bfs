@@ -120,6 +120,35 @@ class Controller extends \GitBfs\Command {
 	}
 
 	/**
+	 * Verify file hashes in configuration
+	 **/
+
+	public function commandHash(){
+
+		$exitCode = 0;
+
+		$project = new \GitBfs\Project;
+		$config = $project->getConfig();
+
+		foreach ($config->files as $filePath => $file){
+
+			if (is_file($filePath) == false){
+				fwrite(STDERR, "File not found: '$filePath'\n");
+				$exitCode = 1;
+				continue;
+			}
+
+			$fileHash = md5_file($filePath);
+			if ($fileHash != $file['hash']){
+				fwrite(STDERR, "Hash have been change : '$filePath'\n");
+				$exitCode = 1;
+			}
+		}
+
+		return $exitCode;
+	}
+
+	/**
 	 * Save configuration file
 	 **/
 
@@ -151,6 +180,23 @@ class Controller extends \GitBfs\Command {
 
 						$viewFile = $view->viewPath($path);
 						$fileHash = md5_file($path);
+
+						// check config files
+						$fileChange = true;
+						foreach ($config->files as $configFilePath => $configFile){
+							if ($configFilePath != $viewFile){ continue; }
+							if ($configFile['hash'] == $fileHash){
+								// ignore size and date on hash same
+								$fileChange = false;
+								$files[$viewFile] = $configFile;
+								continue;
+							}
+						}
+
+						if ($fileChange == false){
+							continue;
+						}
+
 						$fileSize = filesize($path);
 						$fileDate = filemtime($path);
 
@@ -187,35 +233,6 @@ class Controller extends \GitBfs\Command {
 	}
 
 	/**
-	 * Verify file hashes in configuration
-	 **/
-
-	public function commandHash(){
-
-		$exitCode = 0;
-
-		$project = new \GitBfs\Project;
-		$config = $project->getConfig();
-
-		foreach ($config->files as $filePath => $file){
-
-			if (is_file($filePath) == false){
-				fwrite(STDERR, "File not found: '$filePath'\n");
-				$exitCode = 1;
-				continue;
-			}
-
-			$fileHash = md5_file($filePath);
-			if ($fileHash != $file['hash']){
-				fwrite(STDERR, "Hash have been change : '$filePath'\n");
-				$exitCode = 1;
-			}
-		}
-
-		return $exitCode;
-	}
-
-	/**
 	 * Update local files
 	 **/
 
@@ -232,4 +249,16 @@ class Controller extends \GitBfs\Command {
 
 		$remote->pull();
 	}
+
+	/**
+	 * Clear files in configuration file
+	 **/
+
+	public function commandClear() {
+		$project = new \GitBfs\Project;
+		$config = $project->getConfig();
+		$config->files = array();
+		$config->save();
+	}
+
 }
